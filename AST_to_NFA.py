@@ -1,7 +1,13 @@
 import json
 
+# Authors: Alexis Nguyen and Katherine Vu
+# Description: Converts a regular expression into an NFA. Takes in a regex through the command line
+#              and converts it into an NFA by first converting it into an AST. The output will be in
+#              a JSON file.
+#
+
 # This class is the parsing logic for the AST i.e. takes the regex and recursively turns it into an AST
-class RegexParser:
+class MakeAST:
     # Initialization of the parser, sets current index to 0
     def __init__(self, regex):
         self.regex = regex
@@ -9,10 +15,10 @@ class RegexParser:
 
     # Enter the parsing
     def parse(self):
-        return self.parse_regex()
+        return self.readExp()
 
     # For OR, Starts by builing a concatenation until a | is found so it may build an OR
-    def parse_regex(self):
+    def readExp(self):
         left = self.parse_concatenation() # Calls concatenation
         while self.current_index < len(self.regex) and self.regex[self.current_index] == '|':
             self.current_index += 1  # Consume '|' by incrementing current index
@@ -22,22 +28,22 @@ class RegexParser:
 
     # For CONCAT, Starts by processing a * until it encounters a | or ()
     def parse_concatenation(self):
-        left = self.parse_repeat() # Calls * on itself
+        left = self.parse_star() # Calls * on itself
         while self.current_index < len(self.regex) and self.regex[self.current_index] not in '|)':
-            right = self.parse_repeat()
+            right = self.parse_star()
             left = {'type': 'Concatenation', 'operands': [left, right]}
         return left
 
     # For *, Starts by processing a leaf until it finds a * 
-    def parse_repeat(self):
-        atom = self.parse_atom()
+    def parse_star(self):
+        leaf = self.parse_leaf()
         while self.current_index < len(self.regex) and self.regex[self.current_index] == '*':
             self.current_index += 1  # Consume '*'
-            atom = {'type': 'Star', 'operand': atom}
-        return atom
+            leaf = {'type': 'Star', 'operand': leaf}
+        return leaf
 
     # For leaves and ()
-    def parse_atom(self):
+    def parse_leaf(self):
         # Save the current character and then increment the current index
         if self.current_index < len(self.regex):
             current_char = self.regex[self.current_index]
@@ -46,7 +52,7 @@ class RegexParser:
             if current_char.isalnum(): # If it is a character then it is a leaf
                 return {'type': 'Leaf', 'value': current_char}
             elif current_char == '(': # If it is an open parenthesis then parse as a new expression
-                expr = self.parse_regex()
+                expr = self.readExp()
                 if self.current_index < len(self.regex) and self.regex[self.current_index] == ')':
                     self.current_index += 1  # Consume ')'
                     return expr
@@ -78,7 +84,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    regex_parser = RegexParser(args.regex)
+    regex_parser = MakeAST(args.regex)
     
     try:
         ast_root = regex_parser.parse()
@@ -88,4 +94,3 @@ if __name__ == '__main__':
         
     except ValueError as e:
         print(f'Error: {e}')
-        
