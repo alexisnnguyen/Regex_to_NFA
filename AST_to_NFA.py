@@ -6,8 +6,8 @@ import json
 #              a JSON file.
 #
 
-# This class is the parsing logic for the AST i.e. takes the regex and recursively turns it into an AST
-class MakeAST:
+# This class takes the regex and recursively turns it into an AST
+class Make_AST:
     # Initialization of the parser, sets current index to 0
     def __init__(self, regex):
         self.regex = regex
@@ -15,10 +15,10 @@ class MakeAST:
 
     # Enter the parsing
     def parse(self):
-        return self.readExp()
+        return self.read_Exp()
 
     # For OR, Starts by builing a concatenation until a | is found so it may build an OR
-    def readExp(self):
+    def read_Exp(self):
         left = self.parse_concatenation() # Calls concatenation
         while self.current_index < len(self.regex) and self.regex[self.current_index] == '|':
             self.current_index += 1  # Consume '|' by incrementing current index
@@ -52,7 +52,7 @@ class MakeAST:
             if current_char.isalnum(): # If it is a character then it is a leaf
                 return {'type': 'Leaf', 'value': current_char}
             elif current_char == '(': # If it is an open parenthesis then parse as a new expression
-                expr = self.readExp()
+                expr = self.read_Exp()
                 if self.current_index < len(self.regex) and self.regex[self.current_index] == ')':
                     self.current_index += 1  # Consume ')'
                     return expr
@@ -74,6 +74,100 @@ def print_ast(node, indent=0):
                 print_ast(operand, indent + 1)
         elif 'operand' in node:
             print_ast(node['operand'], indent + 1)
+            
+# This class is the logic to turn the AST into an NFA
+class NFA:
+    def __init__(self, states, alphabet, transitions, start_state, accept_states):
+        self.states = states
+        self.alphabet = alphabet
+        self.transitions = transitions
+        self.start_state = start_state
+        self.accept_states = accept_states
+        
+    def leaf_nfa(symbol):
+        # Create an NFA for a single symbol
+        states = ['q0', 'q1']
+        alphabet = {symbol}
+        transitions = {'q0': {symbol: ['q1']}}
+        start_state = 'q0'
+        accept_states = {'q1'}
+
+        return NFA(states, alphabet, transitions, start_state, accept_states)
+
+    def concatenate_nfa(nfa1, nfa2):
+        states = nfa1.states + nfa2.states
+        alphabet = nfa1.alphabet.union(nfa2.alphabet)
+        transitions = nfa1.transitions.copy()
+        
+        for state, transitions in nfa2.transitions.items():
+            if state in transitions:
+                transitions[state] += nfa2.transitions[state]
+            else:
+                transitions[state] = nfa2.transitions[state]
+    
+        start_state = nfa1.start_state
+        accept_states = nfa2.accept_states
+
+        for state in nfa1.accept_states:
+            transitions[state] = {'': [nfa2.start_state]}
+
+        return NFA(states, alphabet, transitions, start_state, accept_states)
+
+    def or_nfa(nfa1, nfa2):
+        # Create an NFA for the choice (OR) operation
+        states = ['q0'] + nfa1.states + nfa2.states + ['q_accept']
+        alphabet = nfa1.alphabet.union(nfa2.alphabet)
+        transitions = {'q0': {'': [nfa1.start_state, nfa2.start_state]}}
+        
+        for state, state_transitions in nfa1.transitions.items():
+            transitions[state] = state_transitions
+        
+        for state, state_transitions in nfa2.transitions.items():
+            if state in transitions:
+                transitions[state].update(state_transitions)
+            else:
+                transitions[state] = state_transitions
+        
+        for state in nfa1.accept_states:
+            transitions[state] = {'': ['q_accept']}
+        
+        for state in nfa2.accept_states:
+            transitions[state] = {'': ['q_accept']}
+        
+        accept_states = {'q_accept'}
+
+        return NFA(states, alphabet, transitions, 'q0', accept_states)
+
+    def star_nfa(nfa):
+        # Create an NFA for the star (closure) operation
+        states = ['q0'] + nfa.states + ['q_accept']
+        alphabet = nfa.alphabet
+        transitions = {'q0': {'': [nfa.start_state, 'q_accept']}}
+        
+        for state, state_transitions in nfa.transitions.items():
+            transitions[state] = state_transitions
+        
+        for state in nfa.accept_states:
+            transitions[state] = {'': [nfa.start_state, 'q_accept']}
+        
+        accept_states = {'q_accept'}
+
+        return NFA(states, alphabet, transitions, 'q0', accept_states)
+
+    def ast_to_nfa(ast):
+        if ast['type'] == 'Leaf':
+            return NFA.leaf_nfa(ast['value'])
+        elif ast['type'] == 'Concatenation':
+            nfa1 = NFA.ast_to_nfa(ast['left'])
+            nfa2 = NFA.ast_to_nfa(ast['right'])
+            return NFA.concatenate_nfa(nfa1, nfa2)
+        elif ast['type'] == 'Or':
+            nfa1 = NFA.ast_to_nfa(ast['operands'][0])
+            nfa2 = NFA.ast_to_nfa(ast['operands'][1])
+            return NFA.or_nfa(nfa1, nfa2)
+        elif ast['type'] == 'Star':
+            nfa = NFA.ast_to_nfa(ast['operand'])
+            return NFA.star_nfa(nfa)
 
 # Main
 if __name__ == '__main__':
@@ -84,13 +178,23 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    regex_parser = MakeAST(args.regex)
+    regex_parser = Make_AST(args.regex)
     
     try:
         ast_root = regex_parser.parse()
         # Printing
         print('AST:')
         print_ast(ast_root)   
+        
+        # Convert AST to NFA
+        nfa = NFA.ast_to_nfa(ast_root)
+
+        # Now, you can use/print the NFA properties as needed
+        print(f'States: {nfa.states}')
+        print(f'Alphabet: {nfa.alphabet}')
+        print(f'Transitions: {nfa.transitions}')
+        print(f'Start State: {nfa.start_state}')
+        print(f'Accept States: {nfa.accept_states}')
         
     except ValueError as e:
         print(f'Error: {e}')
