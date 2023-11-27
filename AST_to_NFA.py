@@ -7,6 +7,26 @@ import json
 #
 
 # This class takes the regex and recursively turns it into an AST
+
+class read_Exp:
+    def __init__(self, regex):
+        self.regex = regex
+        self.current_index = 0
+        self.first = 0
+        self.second = 0
+    
+    def read(self):
+        while self.current_index < len(self.regex):
+            if self.regex[self.current_index] == '(':
+                self.first += 1
+                self.current_index += 1
+            elif self.regex[self.current_index] == ')':
+                self.second += 1
+                self.current_index += 1
+            else:
+                self.current_index += 1
+        return self.first, self.second
+        
 class Make_AST:
     # Initialization of the parser, sets current index to 0
     def __init__(self, regex):
@@ -15,10 +35,10 @@ class Make_AST:
 
     # Enter the parsing
     def parse(self):
-        return self.read_Exp()
+        return self.or_ast()
 
     # For OR, Starts by builing a concatenation until a | is found so it may build an OR
-    def read_Exp(self):
+    def or_ast(self):
         left = self.concatenation_ast() # Calls concatenation
         while self.current_index < len(self.regex) and self.regex[self.current_index] == '|':
             self.current_index += 1  # Consume '|' by incrementing current index
@@ -52,7 +72,7 @@ class Make_AST:
             if current_char.isalnum(): # If it is a character then it is a leaf
                 return {'type': 'Leaf', 'value': current_char}
             elif current_char == '(': # If it is an open parenthesis then parse as a new expression
-                expr = self.read_Exp()
+                expr = self.or_ast()
                 if self.current_index < len(self.regex) and self.regex[self.current_index] == ')':
                     self.current_index += 1  # Consume ')'
                     return expr
@@ -76,7 +96,7 @@ def print_ast(node, indent=0):
             print_ast(node['operand'], indent + 1)
             
 # This class is the logic to turn the AST into an NFA
-class NFA:
+class Make_NFA:
     def __init__(self, states, alphabet, transitions, start_state, accept_states):
         self.states = states
         self.alphabet = alphabet
@@ -102,7 +122,7 @@ class NFA:
         
         accept_states = {accept_state}
 
-        return NFA(states, alphabet, transitions, start_state, accept_states)
+        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Create an NFA for the concatenation operation
     def concatenate_nfa(self, nfa1, nfa2):
@@ -131,7 +151,7 @@ class NFA:
                 
         accept_states = nfa2.accept_states # The accept states of NFA2 are the accept states
 
-        return NFA(states, alphabet, transitions, start_state, accept_states)
+        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Create an NFA for the choice (OR) operation
     def or_nfa(self, nfa1, nfa2):
@@ -162,7 +182,7 @@ class NFA:
         
         accept_states = {accept_state}
 
-        return NFA(states, alphabet, transitions, start_state, accept_states)
+        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Create an NFA for the star (closure) operation
     def star_nfa(self,nfa):
@@ -183,7 +203,7 @@ class NFA:
         
         accept_states = {accept_state}
 
-        return NFA(states, alphabet, transitions, start_state, accept_states)
+        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Makes the NFA using the functions defined above
     def ast_to_nfa(self,ast):
@@ -210,38 +230,43 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    regex_parser = Make_AST(args.regex)
+    reader = read_Exp(args.regex)
+    p_count = reader.read()
+    if p_count[0] != p_count[1]:
+        print(f"Invalid regular expression: unmatched parentheses")
+    else:
+        regex_parser = Make_AST(args.regex)
     
-    try:
-        ast_root = regex_parser.parse()
-        # Printing AST, will delete
-        print('AST:')
-        print_ast(ast_root)   
-        
-        # Creates an instance of NFA
-        nfa_instance = NFA([], set(), {}, None, set())
-        
-        # Convert AST to NFA
-        nfa = nfa_instance.ast_to_nfa(ast_root)
+        try:
+            ast_root = regex_parser.parse()
+            # Printing AST, will delete
+            print('AST:')
+            print_ast(ast_root)   
+            
+            # Creates an instance of NFA
+            nfa_instance = Make_NFA([], set(), {}, None, set())
+            
+            # Convert AST to NFA
+            nfa = nfa_instance.ast_to_nfa(ast_root)
 
-        # For now the states will be printed to the terminal but later it will be a json file
-        print(f'States: {nfa.states}')
-        print(f'Alphabet: {nfa.alphabet}')
-        print(f'Transitions: {nfa.transitions}')
-        print(f'Start State: {nfa.start_state}')
-        print(f'Accept States: {nfa.accept_states}')
+            # For now the states will be printed to the terminal but later it will be a json file
+            print(f'States: {nfa.states}')
+            print(f'Alphabet: {nfa.alphabet}')
+            print(f'Transitions: {nfa.transitions}')
+            print(f'Start State: {nfa.start_state}')
+            print(f'Accept States: {nfa.accept_states}')
 
-        nfa_json = {
-            'States': nfa.states,
-            'Alphabet': list(nfa.alphabet),
-            'Transitions': nfa.transitions,
-            'Start State': nfa.start_state,
-            'Accept States': list(nfa.accept_states)
-        }
+            nfa_json = {
+                'States': nfa.states,
+                'Alphabet': list(nfa.alphabet),
+                'Transitions': nfa.transitions,
+                'Start State': nfa.start_state,
+                'Accept States': list(nfa.accept_states)
+            }
 
-        # Save the final NFA information to a JSON file
-        with open("final_NFA.json", "w") as json_file:
-            json.dump(nfa_json, json_file, indent=2)
-        
-    except ValueError as e:
-        print(f'Error: {e}') # Prints the error
+            # Save the final NFA information to a JSON file
+            with open("final_NFA.json", "w") as json_file:
+                json.dump(nfa_json, json_file, indent=2)
+            
+        except ValueError as e:
+            print(f'Error: {e}') # Prints the error
