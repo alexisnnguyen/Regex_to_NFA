@@ -198,7 +198,7 @@ if __name__ == '__main__':
         # Convert AST to NFA
         nfa = NFA.ast_to_nfa(ast_root)
 
-        # Now, you can use/print the NFA properties as needed
+        # For now the states will be printed to the terminal but later it will be a json file
         print(f'States: {nfa.states}')
         print(f'Alphabet: {nfa.alphabet}')
         print(f'Transitions: {nfa.transitions}')
