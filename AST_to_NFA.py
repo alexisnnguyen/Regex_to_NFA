@@ -76,7 +76,7 @@ def print_ast(node, indent=0):
             print_ast(node['operand'], indent + 1)
             
 # This class is the logic to turn the AST into an NFA
-class Make_NFA:
+class NFA:
     def __init__(self, states, alphabet, transitions, start_state, accept_states):
         self.states = states
         self.alphabet = alphabet
@@ -102,7 +102,7 @@ class Make_NFA:
         
         accept_states = {accept_state}
 
-        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
+        return NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Create an NFA for the concatenation operation
     def concatenate_nfa(self, nfa1, nfa2):
@@ -131,7 +131,7 @@ class Make_NFA:
                 
         accept_states = nfa2.accept_states # The accept states of NFA2 are the accept states
 
-        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
+        return NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Create an NFA for the choice (OR) operation
     def or_nfa(self, nfa1, nfa2):
@@ -162,7 +162,7 @@ class Make_NFA:
         
         accept_states = {accept_state}
 
-        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
+        return NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Create an NFA for the star (closure) operation
     def star_nfa(self,nfa):
@@ -183,7 +183,7 @@ class Make_NFA:
         
         accept_states = {accept_state}
 
-        return Make_NFA(states, alphabet, transitions, start_state, accept_states)
+        return NFA(states, alphabet, transitions, start_state, accept_states)
 
     # Makes the NFA using the functions defined above
     def ast_to_nfa(self,ast):
@@ -216,10 +216,10 @@ if __name__ == '__main__':
         ast_root = regex_parser.parse()
         # Printing AST, will delete
         print('AST:')
-        print_ast(ast_root)
+        print_ast(ast_root)   
         
         # Creates an instance of NFA
-        nfa_instance = Make_NFA([], set(), {}, None, set())
+        nfa_instance = NFA([], set(), {}, None, set())
         
         # Convert AST to NFA
         nfa = nfa_instance.ast_to_nfa(ast_root)
@@ -231,20 +231,17 @@ if __name__ == '__main__':
         print(f'Start State: {nfa.start_state}')
         print(f'Accept States: {nfa.accept_states}')
 
-        # NFA in json format
-        json_nfa = {
+        nfa_json = {
             'States': nfa.states,
             'Alphabet': list(nfa.alphabet),
             'Transitions': nfa.transitions,
             'Start State': nfa.start_state,
             'Accept States': list(nfa.accept_states)
         }
-    
-        json_file = "final_NFA.json"
 
-        # Write NFA information to a JSON file
-        with open(json_file, "w") as json_file:
-            json.dump(json_nfa, json_file, indent=2)
-
+        # Save the final NFA information to a JSON file
+        with open("final_NFA.json", "w") as json_file:
+            json.dump(nfa_json, json_file, indent=2)
+        
     except ValueError as e:
         print(f'Error: {e}') # Prints the error
