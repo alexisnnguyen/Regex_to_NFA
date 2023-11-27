@@ -94,27 +94,35 @@ class NFA:
 
         return NFA(states, alphabet, transitions, start_state, accept_states)
 
+    # Create an NFA for the concatenation operation
     def concatenate_nfa(nfa1, nfa2):
         states = nfa1.states + nfa2.states
         alphabet = nfa1.alphabet.union(nfa2.alphabet)
         transitions = nfa1.transitions.copy()
-        
-        for state, transitions in nfa2.transitions.items():
+
+        for state, state_transitions in nfa2.transitions.items():
             if state in transitions:
-                transitions[state] += nfa2.transitions[state]
+                for symbol, destinations in state_transitions.items():
+                    if symbol in transitions[state]:
+                        transitions[state][symbol] += destinations
+                    else:
+                        transitions[state][symbol] = destinations
             else:
-                transitions[state] = nfa2.transitions[state]
-    
+                transitions[state] = state_transitions
+
         start_state = nfa1.start_state
         accept_states = nfa2.accept_states
 
         for state in nfa1.accept_states:
-            transitions[state] = {'': [nfa2.start_state]}
+            if state in transitions and '' in transitions[state]:
+                transitions[state][''].append(nfa2.start_state)
+            else:
+                transitions[state] = {'': [nfa2.start_state]}
 
         return NFA(states, alphabet, transitions, start_state, accept_states)
 
+    # Create an NFA for the choice (OR) operation
     def or_nfa(nfa1, nfa2):
-        # Create an NFA for the choice (OR) operation
         states = ['q0'] + nfa1.states + nfa2.states + ['q_accept']
         alphabet = nfa1.alphabet.union(nfa2.alphabet)
         transitions = {'q0': {'': [nfa1.start_state, nfa2.start_state]}}
@@ -138,8 +146,8 @@ class NFA:
 
         return NFA(states, alphabet, transitions, 'q0', accept_states)
 
+    # Create an NFA for the star (closure) operation
     def star_nfa(nfa):
-        # Create an NFA for the star (closure) operation
         states = ['q0'] + nfa.states + ['q_accept']
         alphabet = nfa.alphabet
         transitions = {'q0': {'': [nfa.start_state, 'q_accept']}}
@@ -154,12 +162,13 @@ class NFA:
 
         return NFA(states, alphabet, transitions, 'q0', accept_states)
 
+    # Makes the NFA using the functions defined above
     def ast_to_nfa(ast):
         if ast['type'] == 'Leaf':
             return NFA.leaf_nfa(ast['value'])
         elif ast['type'] == 'Concatenation':
-            nfa1 = NFA.ast_to_nfa(ast['left'])
-            nfa2 = NFA.ast_to_nfa(ast['right'])
+            nfa1 = NFA.ast_to_nfa(ast['operands'][0])
+            nfa2 = NFA.ast_to_nfa(ast['operands'][1])
             return NFA.concatenate_nfa(nfa1, nfa2)
         elif ast['type'] == 'Or':
             nfa1 = NFA.ast_to_nfa(ast['operands'][0])
