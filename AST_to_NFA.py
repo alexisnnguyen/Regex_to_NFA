@@ -77,24 +77,27 @@ def print_ast(node, indent=0):
             
 # This class is the logic to turn the AST into an NFA
 class NFA:
-    def __init__(self, states, alphabet, transitions, start_state, accept_states):
+    state_array = [f'q{i}' for i in range(101)] # Array of 100 unused states initialized
+
+    def __init__(self, states, alphabet, transitions, start_state, accept_states, current_state):
         self.states = states
         self.alphabet = alphabet
         self.transitions = transitions
         self.start_state = start_state
         self.accept_states = accept_states
+        self.current_state = current_state
         
-    def leaf_nfa(symbol):
+    def leaf_nfa(self, symbol):
         # Create an NFA for a single symbol
-        states = ['q0', 'q1']
+        states = [self.state_array[self.current_state], self.state_array[self.current_state + 1]]
         alphabet = {symbol}
-        transitions = {'q0': {symbol: ['q1']}}
-        start_state = 'q0'
-        accept_states = {'q1'}
+        transitions = {self.state_array[self.current_state]: {symbol: [self.state_array[self.current_state + 1]]}}
+        start_state = self.state_array[self.current_state]
+        accept_states = {self.state_array[self.current_state + 1]}
 
-        return NFA(states, alphabet, transitions, start_state, accept_states)
+        return NFA(states, alphabet, transitions, start_state, accept_states, self.current_state + 2)
 
-    def concatenate_nfa(nfa1, nfa2):
+    def concatenate_nfa(self, nfa1, nfa2):
         states = nfa1.states + nfa2.states
         alphabet = nfa1.alphabet.union(nfa2.alphabet)
         transitions = nfa1.transitions.copy()
@@ -111,11 +114,11 @@ class NFA:
         for state in nfa1.accept_states:
             transitions[state] = {'': [nfa2.start_state]}
 
-        return NFA(states, alphabet, transitions, start_state, accept_states)
+        return NFA(states, alphabet, transitions, start_state, accept_states, self.current_state)
 
-    def or_nfa(nfa1, nfa2):
+    def or_nfa(self, nfa1, nfa2):
         # Create an NFA for the choice (OR) operation
-        states = ['q0'] + nfa1.states + nfa2.states + ['q_accept']
+        states = nfa1.states + nfa2.states
         alphabet = nfa1.alphabet.union(nfa2.alphabet)
         transitions = {'q0': {'': [nfa1.start_state, nfa2.start_state]}}
         
@@ -136,11 +139,11 @@ class NFA:
         
         accept_states = {'q_accept'}
 
-        return NFA(states, alphabet, transitions, 'q0', accept_states)
+        return NFA(states, alphabet, transitions, 'q0', accept_states, self.current_state)
 
-    def star_nfa(nfa):
+    def star_nfa(self, nfa):
         # Create an NFA for the star (closure) operation
-        states = ['q0'] + nfa.states + ['q_accept']
+        states = nfa.states + ['q_accept']
         alphabet = nfa.alphabet
         transitions = {'q0': {'': [nfa.start_state, 'q_accept']}}
         
@@ -152,22 +155,22 @@ class NFA:
         
         accept_states = {'q_accept'}
 
-        return NFA(states, alphabet, transitions, 'q0', accept_states)
+        return NFA(states, alphabet, transitions, 'q0', accept_states, self.current_state)
 
-    def ast_to_nfa(ast):
+    def ast_to_nfa(self, ast):
         if ast['type'] == 'Leaf':
-            return NFA.leaf_nfa(ast['value'])
+            return self.leaf_nfa(ast['value'])
         elif ast['type'] == 'Concatenation':
-            nfa1 = NFA.ast_to_nfa(ast['operands'][0])
-            nfa2 = NFA.ast_to_nfa(ast['operands'][1])
-            return NFA.concatenate_nfa(nfa1, nfa2)
+            nfa1 = self.ast_to_nfa(ast['operands'][0])
+            nfa2 = self.ast_to_nfa(ast['operands'][1])
+            return self.concatenate_nfa(nfa1, nfa2)
         elif ast['type'] == 'Or':
-            nfa1 = NFA.ast_to_nfa(ast['operands'][0])
-            nfa2 = NFA.ast_to_nfa(ast['operands'][1])
-            return NFA.or_nfa(nfa1, nfa2)
+            nfa1 = self.ast_to_nfa(ast['operands'][0])
+            nfa2 = self.ast_to_nfa(ast['operands'][1])
+            return self.or_nfa(nfa1, nfa2)
         elif ast['type'] == 'Star':
-            nfa = NFA.ast_to_nfa(ast['operand'])
-            return NFA.star_nfa(nfa)
+            nfa = self.ast_to_nfa(ast['operand'])
+            return self.star_nfa(nfa)
 
 # Main
 if __name__ == '__main__':
@@ -187,7 +190,8 @@ if __name__ == '__main__':
         print_ast(ast_root)   
         
         # Convert AST to NFA
-        nfa = NFA.ast_to_nfa(ast_root)
+        nfa_instance = NFA(states=[], alphabet=set(), transitions={}, start_state='', accept_states=set(), current_state=0)
+        nfa = nfa_instance.ast_to_nfa(ast_root)
 
         # Now, you can use/print the NFA properties as needed
         print(f'States: {nfa.states}')
