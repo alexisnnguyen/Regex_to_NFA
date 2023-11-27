@@ -12,20 +12,37 @@ class read_Exp:
     def __init__(self, regex):
         self.regex = regex
         self.current_index = 0
-        self.first = 0
-        self.second = 0
+        self.error = 0
     
     def read(self):
+        first = 0 # Counter for first parenthesis
+        second = 0 # Counter for second parenthesis
+        star = 0 # Counter for multiple *'s in a row
+        orr = 0 # Counter for multiple |'s in a row
         while self.current_index < len(self.regex):
             if self.regex[self.current_index] == '(':
-                self.first += 1
+                first += 1
                 self.current_index += 1
             elif self.regex[self.current_index] == ')':
-                self.second += 1
+                second += 1
+                self.current_index += 1
+            elif self.regex[self.current_index] == '*':
+                star += 1
+                if self.regex[self.current_index + 1] == '*' and star == 1:
+                    self.error += 1
+                    return self.error # Return if there is an error
+                self.current_index += 1
+            elif self.regex[self.current_index] == '|':
+                orr += 1
+                if self.regex[self.current_index + 1] == '|' and orr == 1:
+                    self.error += 1
+                    return self.error # Return if there is an error
                 self.current_index += 1
             else:
                 self.current_index += 1
-        return self.first, self.second
+        if first != second:
+            self.error += 1
+        return self.error # Return 0 if there is no error
         
 class Make_AST:
     # Initialization of the parser, sets current index to 0
@@ -227,14 +244,18 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Convert regular expressions to AST in JSON format.')
     parser.add_argument('regex', type=str, help='The regular expression to convert.')
-
+    # Load in argument
     args = parser.parse_args()
 
-    reader = read_Exp(args.regex)
-    p_count = reader.read()
-    if p_count[0] != p_count[1]:
-        print(f"Invalid regular expression: unmatched parentheses")
+    # Read expression for correct format
+    reader = read_Exp(args.regex) 
+    p_error = reader.read()
+
+    # Print out error if incorrect format
+    if p_error != 0:
+        print(f"Invalid regular expression: Expression in incorrect format")
     else:
+        # Make AST for regex
         regex_parser = Make_AST(args.regex)
     
         try:
@@ -266,7 +287,7 @@ if __name__ == '__main__':
 
             # Save the final NFA information to a JSON file
             with open("final_NFA.json", "w") as json_file:
-                json.dump(nfa_json, json_file, indent=2)
+                json.dump(nfa_json, json_file, indent=1)
             
         except ValueError as e:
             print(f'Error: {e}') # Prints the error
