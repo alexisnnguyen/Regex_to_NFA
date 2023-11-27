@@ -9,10 +9,10 @@ class MakeAST:
 
     # Enter the parsing
     def parse(self):
-        return self.readExp()
+        return self.read_Exp()
 
     # For OR, Starts by builing a concatenation until a | is found so it may build an OR
-    def readExp(self):
+    def read_Exp(self):
         left = self.parse_concatenation() # Calls concatenation
         while self.current_index < len(self.regex) and self.regex[self.current_index] == '|':
             self.current_index += 1  # Consume '|' by incrementing current index
@@ -46,7 +46,7 @@ class MakeAST:
             if current_char.isalnum(): # If it is a character then it is a leaf
                 return {'type': 'Leaf', 'value': current_char}
             elif current_char == '(': # If it is an open parenthesis then parse as a new expression
-                expr = self.readExp()
+                expr = self.read_Exp()
                 if self.current_index < len(self.regex) and self.regex[self.current_index] == ')':
                     self.current_index += 1  # Consume ')'
                     return expr
@@ -72,12 +72,11 @@ def print_ast(node, indent=0):
 # Main
 if __name__ == '__main__':
     import argparse
-
     parser = argparse.ArgumentParser(description='Convert regular expressions to AST in JSON format.')
     parser.add_argument('regex', type=str, help='The regular expression to convert.')
 
     args = parser.parse_args()
-
+    
     regex_parser = MakeAST(args.regex)
     
     try:
@@ -88,4 +87,3 @@ if __name__ == '__main__':
         
     except ValueError as e:
         print(f'Error: {e}')
-        

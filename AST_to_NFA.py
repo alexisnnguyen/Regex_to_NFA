@@ -158,8 +158,8 @@ class NFA:
         if ast['type'] == 'Leaf':
             return NFA.leaf_nfa(ast['value'])
         elif ast['type'] == 'Concatenation':
-            nfa1 = NFA.ast_to_nfa(ast['left'])
-            nfa2 = NFA.ast_to_nfa(ast['right'])
+            nfa1 = NFA.ast_to_nfa(ast['operands'][0])
+            nfa2 = NFA.ast_to_nfa(ast['operands'][1])
             return NFA.concatenate_nfa(nfa1, nfa2)
         elif ast['type'] == 'Or':
             nfa1 = NFA.ast_to_nfa(ast['operands'][0])
