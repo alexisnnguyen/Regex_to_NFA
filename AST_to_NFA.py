@@ -1,4 +1,5 @@
 import json
+import argparse
 
 # Authors: Alexis Nguyen and Katherine Vu
 # Description: Converts a regular expression into an NFA. Takes in a regex through the command line
@@ -28,15 +29,17 @@ class read_Exp:
                 self.current_index += 1
             elif self.regex[self.current_index] == '*':
                 star += 1
-                if self.regex[self.current_index + 1] == '*' and star == 1:
-                    self.error += 1
-                    return self.error # Return if there is an error
+                if self.current_index + 1 < len(self.regex):
+                    if self.regex[self.current_index + 1] == '*' and star == 1:
+                        self.error += 1
+                        return self.error # Return if there is an error
                 self.current_index += 1
             elif self.regex[self.current_index] == '|':
                 orr += 1
-                if self.regex[self.current_index + 1] == '|' and orr == 1:
-                    self.error += 1
-                    return self.error # Return if there is an error
+                if self.current_index + 1 < len(self.regex):
+                    if self.regex[self.current_index + 1] == '|' and orr == 1:
+                        self.error += 1
+                        return self.error # Return if there is an error
                 self.current_index += 1
             else:
                 self.current_index += 1
@@ -240,13 +243,11 @@ class Make_NFA:
 
 # Main
 if __name__ == '__main__':
-    import argparse
-
     parser = argparse.ArgumentParser(description='Convert regular expressions to AST in JSON format.')
     parser.add_argument('regex', type=str, help='The regular expression to convert.')
     # Load in argument
     args = parser.parse_args()
-
+    
     # Read expression for correct format
     reader = read_Exp(args.regex) 
     p_error = reader.read()
@@ -259,23 +260,13 @@ if __name__ == '__main__':
         regex_parser = Make_AST(args.regex)
     
         try:
-            ast_root = regex_parser.parse()
-            # Printing AST, will delete
-            print('AST:')
-            print_ast(ast_root)   
+            ast_root = regex_parser.parse() 
             
             # Creates an instance of NFA
-            nfa_instance = Make_NFA([], set(), {}, None, set())
+            nfa_object = Make_NFA([], set(), {}, None, set())
             
             # Convert AST to NFA
-            nfa = nfa_instance.ast_to_nfa(ast_root)
-
-            # For now the states will be printed to the terminal but later it will be a json file
-            print(f'States: {nfa.states}')
-            print(f'Alphabet: {nfa.alphabet}')
-            print(f'Transitions: {nfa.transitions}')
-            print(f'Start State: {nfa.start_state}')
-            print(f'Accept States: {nfa.accept_states}')
+            nfa = nfa_object.ast_to_nfa(ast_root)
 
             nfa_json = {
                 'States': nfa.states,
