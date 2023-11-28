@@ -7,8 +7,7 @@ import argparse
 #              a JSON file.
 #
 
-# This class takes the regex and recursively turns it into an AST
-
+# This class takes the regex and checks for proper format
 class read_Exp:
     def __init__(self, regex):
         self.regex = regex
@@ -47,6 +46,7 @@ class read_Exp:
             self.error += 1
         return self.error # Return 0 if there is no error
         
+# This class takes the regex and recursively turns it into an AST
 class Make_AST:
     # Initialization of the parser, sets current index to 0
     def __init__(self, regex):
