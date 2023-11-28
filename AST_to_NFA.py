@@ -279,6 +279,7 @@ if __name__ == '__main__':
             # Save the final NFA information to a JSON file
             with open("final_NFA.json", "w") as json_file:
                 json.dump(nfa_json, json_file, indent=1)
+            print(f"Check final_NFA.json to check final NFA!")
             
         except ValueError as e:
             print(f'Error: {e}') # Prints the error

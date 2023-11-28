@@ -1,0 +1,415 @@
+These are the test cases for our project. They all had to be run on
+the command line so this file shows all the outputs for each test case.
+The test cases that worked all outputted the NFA formal description to
+the final_NFA.json while the cases that didn't work outputted an error
+message onto the terminal.
+
+Test Case 1: (a|b)*
+{
+ "States": [
+  "q6",
+  "q4",
+  "q0",
+  "q1",
+  "q2",
+  "q3",
+  "q5",
+  "q7"
+ ],
+ "Alphabet": [
+  "a",
+  "b"
+ ],
+ "Transitions": {
+  "q6": {
+   "\u03b5": [
+    "q4",
+    "q7"
+   ]
+  },
+  "q4": {
+   "\u03b5": [
+    "q0",
+    "q2"
+   ]
+  },
+  "q0": {
+   "a": [
+    "q1"
+   ]
+  },
+  "q2": {
+   "b": [
+    "q3"
+   ]
+  },
+  "q1": {
+   "\u03b5": [
+    "q5"
+   ]
+  },
+  "q3": {
+   "\u03b5": [
+    "q5"
+   ]
+  },
+  "q5": {
+   "\u03b5": [
+    "q4",
+    "q7"
+   ]
+  }
+ },
+ "Start State": "q6",
+ "Accept States": [
+  "q7"
+ ]
+}
+
+Test Case 2: ab*a
+{
+ "States": [
+  "q0",
+  "q1",
+  "q4",
+  "q2",
+  "q3",
+  "q5",
+  "q6",
+  "q7"
+ ],
+ "Alphabet": [
+  "b",
+  "a"
+ ],
+ "Transitions": {
+  "q0": {
+   "a": [
+    "q1"
+   ]
+  },
+  "q4": {
+   "\u03b5": [
+    "q2",
+    "q5"
+   ]
+  },
+  "q2": {
+   "b": [
+    "q3"
+   ]
+  },
+  "q3": {
+   "\u03b5": [
+    "q2",
+    "q5"
+   ]
+  },
+  "q1": {
+   "\u03b5": [
+    "q4"
+   ]
+  },
+  "q6": {
+   "a": [
+    "q7"
+   ]
+  },
+  "q5": {
+   "\u03b5": [
+    "q6"
+   ]
+  }
+ },
+ "Start State": "q0",
+ "Accept States": [
+  "q7"
+ ]
+}
+
+Test Case 3: ab|ba
+{
+ "States": [
+  "q8",
+  "q0",
+  "q1",
+  "q2",
+  "q3",
+  "q4",
+  "q5",
+  "q6",
+  "q7",
+  "q9"
+ ],
+ "Alphabet": [
+  "b",
+  "a"
+ ],
+ "Transitions": {
+  "q8": {
+   "\u03b5": [
+    "q0",
+    "q4"
+   ]
+  },
+  "q0": {
+   "a": [
+    "q1"
+   ]
+  },
+  "q2": {
+   "b": [
+    "q3"
+   ]
+  },
+  "q1": {
+   "\u03b5": [
+    "q2"
+   ]
+  },
+  "q4": {
+   "b": [
+    "q5"
+   ]
+  },
+  "q6": {
+   "a": [
+    "q7"
+   ]
+  },
+  "q5": {
+   "\u03b5": [
+    "q6"
+   ]
+  },
+  "q3": {
+   "\u03b5": [
+    "q9"
+   ]
+  },
+  "q7": {
+   "\u03b5": [
+    "q9"
+   ]
+  }
+ },
+ "Start State": "q8",
+ "Accept States": [
+  "q9"
+ ]
+}
+
+Test Case 4: (ba)*|a
+{
+ "States": [
+  "q8",
+  "q4",
+  "q0",
+  "q1",
+  "q2",
+  "q3",
+  "q5",
+  "q6",
+  "q7",
+  "q9"
+ ],
+ "Alphabet": [
+  "b",
+  "a"
+ ],
+ "Transitions": {
+  "q8": {
+   "\u03b5": [
+    "q4",
+    "q6"
+   ]
+  },
+  "q4": {
+   "\u03b5": [
+    "q0",
+    "q5"
+   ]
+  },
+  "q0": {
+   "b": [
+    "q1"
+   ]
+  },
+  "q2": {
+   "a": [
+    "q3"
+   ]
+  },
+  "q1": {
+   "\u03b5": [
+    "q2"
+   ]
+  },
+  "q3": {
+   "\u03b5": [
+    "q0",
+    "q5"
+   ]
+  },
+  "q6": {
+   "a": [
+    "q7"
+   ]
+  },
+  "q5": {
+   "\u03b5": [
+    "q9"
+   ]
+  },
+  "q7": {
+   "\u03b5": [
+    "q9"
+   ]
+  }
+ },
+ "Start State": "q8",
+ "Accept States": [
+  "q9"
+ ]
+}
+
+Test Case 5: a*b*
+{
+ "States": [
+  "q2",
+  "q0",
+  "q1",
+  "q3",
+  "q6",
+  "q4",
+  "q5",
+  "q7"
+ ],
+ "Alphabet": [
+  "a",
+  "b"
+ ],
+ "Transitions": {
+  "q2": {
+   "\u03b5": [
+    "q0",
+    "q3"
+   ]
+  },
+  "q0": {
+   "a": [
+    "q1"
+   ]
+  },
+  "q1": {
+   "\u03b5": [
+    "q0",
+    "q3"
+   ]
+  },
+  "q6": {
+   "\u03b5": [
+    "q4",
+    "q7"
+   ]
+  },
+  "q4": {
+   "b": [
+    "q5"
+   ]
+  },
+  "q5": {
+   "\u03b5": [
+    "q4",
+    "q7"
+   ]
+  },
+  "q3": {
+   "\u03b5": [
+    "q6"
+   ]
+  }
+ },
+ "Start State": "q2",
+ "Accept States": [
+  "q7"
+ ]
+}
+
+Test Case 6: (a*b)*
+{
+ "States": [
+  "q6",
+  "q2",
+  "q0",
+  "q1",
+  "q3",
+  "q4",
+  "q5",
+  "q7"
+ ],
+ "Alphabet": [
+  "a",
+  "b"
+ ],
+ "Transitions": {
+  "q6": {
+   "\u03b5": [
+    "q2",
+    "q7"
+   ]
+  },
+  "q2": {
+   "\u03b5": [
+    "q0",
+    "q3"
+   ]
+  },
+  "q0": {
+   "a": [
+    "q1"
+   ]
+  },
+  "q1": {
+   "\u03b5": [
+    "q0",
+    "q3"
+   ]
+  },
+  "q4": {
+   "b": [
+    "q5"
+   ]
+  },
+  "q3": {
+   "\u03b5": [
+    "q4"
+   ]
+  },
+  "q5": {
+   "\u03b5": [
+    "q2",
+    "q7"
+   ]
+  }
+ },
+ "Start State": "q6",
+ "Accept States": [
+  "q7"
+ ]
+}
+
+Test Case 7: ((a)
+Invalid regular expression: Expression in incorrect format
+
+Test Case 8: a**
+Invalid regular expression: Expression in incorrect format
+
+Test Case 9: a|
+Invalid regular expression: Expression in incorrect format
+
+Test Case 10: a||
+Invalid regular expression: Expression in incorrect format
+
+Test Case 11: a&
+Error: Invalid regular expression at '&'

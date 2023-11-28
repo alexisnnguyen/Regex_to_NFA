@@ -1,33 +1,20 @@
 {
  "States": [
   "q0",
-  "q1",
-  "q2",
-  "q3"
+  "q1"
  ],
  "Alphabet": [
-  "a",
-  "b"
+  "a"
  ],
  "Transitions": {
   "q0": {
    "a": [
     "q1"
    ]
-  },
-  "q2": {
-   "b": [
-    "q3"
-   ]
-  },
-  "q1": {
-   "\u03b5": [
-    "q2"
-   ]
   }
  },
  "Start State": "q0",
  "Accept States": [
-  "q3"
+  "q1"
  ]
 }
