@@ -101,8 +101,6 @@ class Make_AST:
                     return expr
                 else: # Error in syntax, extra closed parenthesis
                     raise ValueError('Invalid regular expression: unmatched parentheses')
-            elif current_char == '.': # Wildcard/Epsilon
-                return {'type': 'AnyChar'}
             else: # Error in syntax
                 raise ValueError(f'Invalid regular expression at \'{current_char}\'')
         else: # Error in syntax
