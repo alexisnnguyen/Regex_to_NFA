@@ -5,9 +5,9 @@ import argparse
 # Description: Converts a regular expression into an NFA. Takes in a regex through the command line
 #              and converts it into an NFA by first converting it into an AST. The output will be in
 #              a JSON file.
-#
+# Usage: python AST_to_NFA.py "<Regex>"
 
-# This class takes the regex and checks for proper format
+# This class takes the regex and checks for proper formatting
 class read_Exp:
     def __init__(self, regex):
         self.regex = regex
@@ -20,6 +20,7 @@ class read_Exp:
         star = 0 # Counter for multiple *'s in a row
         orr = 0 # Counter for multiple |'s in a row
         while self.current_index < len(self.regex):
+            # Increment each parenthesis found in regex
             if self.regex[self.current_index] == '(':
                 first += 1
                 self.current_index += 1
@@ -27,6 +28,7 @@ class read_Exp:
                 second += 1
                 self.current_index += 1
             elif self.regex[self.current_index] == '*':
+                # Checks for double stars in a row
                 star += 1
                 if self.current_index + 1 < len(self.regex):
                     if self.regex[self.current_index + 1] == '*' and star == 1:
@@ -34,6 +36,7 @@ class read_Exp:
                         return self.error # Return if there is an error
                 self.current_index += 1
             elif self.regex[self.current_index] == '|':
+                # Checks for double ors in a row
                 orr += 1
                 if self.current_index + 1 < len(self.regex):
                     if self.regex[self.current_index + 1] == '|' and orr == 1:
@@ -41,8 +44,8 @@ class read_Exp:
                         return self.error # Return if there is an error
                 self.current_index += 1
             else:
-                self.current_index += 1
-        if first != second:
+                self.current_index += 1 # Increment index
+        if first != second: # If mismatched parentheses
             self.error += 1
         return self.error # Return 0 if there is no error
         
@@ -106,6 +109,7 @@ class Make_AST:
             raise ValueError('Invalid regular expression')
 
 # Prints the AST to check if it is parsing correctly, will delete later
+# For testing only
 def print_ast(node, indent=0):
     if node is not None:
         print('  ' * indent, f'{node["type"]}: {node.get("value", "")}')
@@ -258,23 +262,20 @@ if __name__ == '__main__':
     else:
         # Make AST for regex
         regex_parser = Make_AST(args.regex)
-    
         try:
             ast_root = regex_parser.parse() 
-            
+
             # Creates an instance of NFA
             nfa_object = Make_NFA([], set(), {}, None, set())
             
             # Convert AST to NFA
             nfa = nfa_object.ast_to_nfa(ast_root)
 
-            nfa_json = {
-                'States': nfa.states,
-                'Alphabet': list(nfa.alphabet),
-                'Transitions': nfa.transitions,
-                'Start State': nfa.start_state,
-                'Accept States': list(nfa.accept_states)
-            }
+            nfa_json = {'States': nfa.states,
+                        'Alphabet': list(nfa.alphabet),
+                        'Transitions': nfa.transitions,
+                        'Start State': nfa.start_state,
+                        'Accept States': list(nfa.accept_states) }
 
             # Save the final NFA information to a JSON file
             with open("final_NFA.json", "w") as json_file:
